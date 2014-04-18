@@ -112,16 +112,6 @@ CREATE UNIQUE INDEX exhibition_substring_idx ON exhibition USING btree ("substri
 
 
 --
--- Name: public; Type: ACL; Schema: -; Owner: -
---
-
-REVOKE ALL ON SCHEMA public FROM PUBLIC;
-REVOKE ALL ON SCHEMA public FROM tom;
-GRANT ALL ON SCHEMA public TO tom;
-GRANT ALL ON SCHEMA public TO PUBLIC;
-
-
---
 -- PostgreSQL database dump complete
 --
 
