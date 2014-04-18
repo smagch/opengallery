@@ -74,7 +74,7 @@ CREATE TABLE exhibition (
 CREATE TABLE gallery (
     id uuid NOT NULL,
     name character varying(100) NOT NULL,
-    location character varying(200) NOT NULL,
+    meta json NOT NULL,
     about character varying(2000) NOT NULL,
     created timestamp with time zone DEFAULT ('now'::text)::date,
     updated timestamp with time zone
