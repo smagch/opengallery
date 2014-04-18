@@ -5,7 +5,7 @@ func isDigit(r rune) bool {
 }
 
 func isHex(r rune) bool {
-	return isDigit(r) || ('a' <= r && 'f' >= r)
+	return isDigit(r) || ('a' <= r && 'f' >= r) || ('A' <= r && 'F' >= r)
 }
 
 // 8, 13, 23, 18 is '-'
