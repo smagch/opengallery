@@ -93,4 +93,12 @@ func TestExhibitionCreate(t *testing.T) {
 	if err := SaveAndAssert(e, e.Create); err != nil {
 		t.Fatal(err)
 	}
+
+	e.Title = "Updated Title"
+	e.DateRange[0] = e.DateRange[0].AddDate(0, -1, 0)
+	e.DateRange[1] = e.DateRange[1].AddDate(0, 1, 0)
+	e.Description = "Updated Description"
+	if err := SaveAndAssert(e, e.Update); err != nil {
+		t.Fatal(err)
+	}
 }

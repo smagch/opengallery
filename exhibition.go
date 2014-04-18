@@ -124,6 +124,24 @@ func (e *Exhibition) Create() error {
 	return err
 }
 
+// Update update an exhibition row
+func (e *Exhibition) Update() error {
+	if err := e.Validate(); err != nil {
+		return err
+	}
+	b := e.GetByteId()
+	hashId := e.GetHashId()
+	_, err := db.Exec(`
+		UPDATE
+			exhibition
+		SET
+			(_byteid, title, description, date_range) = ($2, $3, $4, $5)
+		WHERE
+			substring(_byteid, 5) = $1
+		`, hashId, b, e.Title, e.Description, e.DateRange.Format())
+	return err
+}
+
 // GetExhibition fetch an exhibition model.
 func GetExhibition(galleryId, id string) (e *Exhibition, err error) {
 	var dateStart, dateEnd time.Time
