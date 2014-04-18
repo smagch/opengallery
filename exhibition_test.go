@@ -101,4 +101,14 @@ func TestExhibitionCreate(t *testing.T) {
 	if err := SaveAndAssert(e, e.Update); err != nil {
 		t.Fatal(err)
 	}
+
+	e.Description = "Updated Description"
+	if err := SaveAndAssert(e, e.CreateOrUpdate); err != nil {
+		t.Fatal(err)
+	}
+
+	e = createRandomExhibition()
+	if err := SaveAndAssert(e, e.CreateOrUpdate); err != nil {
+		t.Fatal(err)
+	}
 }

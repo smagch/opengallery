@@ -142,6 +142,30 @@ func (e *Exhibition) Update() error {
 	return err
 }
 
+// CreateOrUpdate update if exists. If not create new model.
+func (e *Exhibition) CreateOrUpdate() (err error) {
+	if err = e.Validate(); err != nil {
+		return
+	}
+	var exists bool
+	hashId := e.GetHashId()
+	err = db.QueryRow(`
+		SELECT EXISTS (
+			SELECT 1 FROM exhibition WHERE substring(_byteid, 5) = $1
+		)
+	`, hashId).Scan(&exists)
+
+	if err != nil {
+		return
+	}
+	if exists {
+		err = e.Update()
+	} else {
+		err = e.Create()
+	}
+	return
+}
+
 // GetExhibition fetch an exhibition model.
 func GetExhibition(galleryId, id string) (e *Exhibition, err error) {
 	var dateStart, dateEnd time.Time
