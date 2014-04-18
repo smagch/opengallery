@@ -9,14 +9,29 @@ import (
 	"github.com/satori/go.uuid"
 	"math/rand"
 	"reflect"
+	"sync"
 	"testing"
 	"time"
 )
 
 func OpenTestDb() (err error) {
 	db, err = sql.Open("postgres", "postgres://:@127.0.0.1/galleryinfo?sslmode=disable")
-	db.SetMaxOpenConns(10)
+	db.SetMaxOpenConns(4)
 	return
+}
+
+func MustParseDateRange(start, end string) *dateRange {
+	d, err := parseDateRange(start, end)
+	if err != nil {
+		panic(err)
+	}
+	return d
+}
+
+func MustTruncateAll() {
+	if _, err := db.Exec(`TRUNCATE exhibition, gallery`); err != nil {
+		panic(err)
+	}
 }
 
 func random(min, max int) int {
@@ -83,6 +98,69 @@ func SaveAndAssert(e *Exhibition, fn func() error) error {
 	return nil
 }
 
+func insertExhibitionsWith(dr dateRange, gList []*Gallery) (results []*Exhibition, err error) {
+	var wg sync.WaitGroup
+	wg.Add(len(gList))
+	for _, g := range gList {
+		e := &Exhibition{}
+		e.GalleryId = g.Id
+		e.Title = fmt.Sprintf("Exhibition-Title-%d", random(1000, 2000))
+		e.Id = "ID:" + e.Title
+		e.Description = "Description for " + e.Title
+		e.DateRange = dr
+		results = append(results, e)
+		go func(e *Exhibition) {
+			err = e.Create()
+			wg.Done()
+		}(e)
+	}
+	wg.Wait()
+	return
+}
+
+func insertExhibitions(start time.Time, span int, total int) (eList []*Exhibition, err error) {
+	// create gallery at first
+	g := createRandomGallery()
+	if err = g.Create(); err != nil {
+		return
+	}
+
+	// create a long text
+	addDescription := func(repeat int, e *Exhibition, txt string) {
+		var b bytes.Buffer
+		for i := 0; i < repeat; i++ {
+			b.WriteString(txt)
+		}
+		e.Description = b.String()
+	}
+
+	var wg sync.WaitGroup
+	var dateStart, dateEnd time.Time
+	current := start
+
+	fmt.Println(g.Id)
+	for i := 0; i < total; i++ {
+		wg.Add(1)
+		e := &Exhibition{
+			Id:        fmt.Sprintf("ID:%d", i),
+			GalleryId: g.Id,
+			Title:     fmt.Sprintf("Pagination-Test:%d", i),
+		}
+		addDescription(100, e, "This is the Description for "+e.Title)
+		dateStart = current
+		dateEnd = current.AddDate(0, 0, span)
+		current = dateEnd.AddDate(0, 0, 1)
+		e.DateRange = dateRange{dateStart, dateEnd}
+		eList = append(eList, e)
+		go func(i int, e *Exhibition, err error) {
+			err = e.Create()
+			wg.Done()
+		}(i, e, err)
+	}
+	wg.Wait()
+	return
+}
+
 func TestExhibitionCreate(t *testing.T) {
 	if err := OpenTestDb(); err != nil {
 		t.Fatal(err)
@@ -110,5 +188,59 @@ func TestExhibitionCreate(t *testing.T) {
 	e = createRandomExhibition()
 	if err := SaveAndAssert(e, e.CreateOrUpdate); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestGetExhibitionsByDateRange(t *testing.T) {
+	if err := OpenTestDb(); err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	MustTruncateAll()
+	galleries, err := insertRandomGallery(20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	span1 := MustParseDateRange("2014-01-15", "2014-01-20")
+	span2 := MustParseDateRange("2014-01-19", "2014-01-21")
+
+	if _, err = insertExhibitionsWith(*span1, galleries); err != nil {
+		t.Fatal(err)
+	}
+	if _, err = insertExhibitionsWith(*span2, galleries); err != nil {
+		t.Fatal(err)
+	}
+
+	cases := []struct {
+		num   int
+		start string
+		end   string
+	}{
+		{0, "2013-01-14", "2013-01-14"},
+		{0, "2014-01-14", "2014-01-14"},
+		{20, "2014-01-15", "2014-01-15"},
+		{20, "2014-01-16", "2014-01-16"},
+		{20, "2014-01-17", "2014-01-17"},
+		{20, "2014-01-18", "2014-01-18"},
+		{40, "2014-01-19", "2014-01-19"},
+		{40, "2014-01-20", "2014-01-20"},
+		{20, "2014-01-21", "2014-01-21"},
+		{20, "2014-01-21", "2014-01-21"},
+		{0, "2014-01-22", "2014-01-22"},
+		{0, "2015-01-21", "2015-01-21"},
+		{40, "2014-01-14", "2014-01-22"},
+	}
+
+	for _, c := range cases {
+		dr := MustParseDateRange(c.start, c.end)
+		results, err := SearchExhibitions(dr)
+		if err != nil {
+			t.Fatal(err)
+		}
+		num := len(results)
+		if num != c.num {
+			t.Fatalf("Expected %d results length on %s. But got %d", c.num,
+				c.start, num)
+		}
 	}
 }

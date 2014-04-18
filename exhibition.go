@@ -189,3 +189,38 @@ func GetExhibition(galleryId, id string) (e *Exhibition, err error) {
 	e.DateRange = dateRange{dateStart, dateEnd}
 	return
 }
+
+func SearchExhibitions(dr *dateRange) (results []Exhibition, err error) {
+	var rows *sql.Rows
+	rows, err = db.Query(`
+		SELECT
+			gallery_id, title, lower(date_range), upper(date_range)
+		FROM
+			exhibition
+		WHERE
+			date_range && $1
+		ORDER BY
+			upper(date_range)
+		LIMIT 100
+	`, dr.Format())
+
+	if err != nil {
+		return
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var start, end time.Time
+		e := Exhibition{}
+		err = rows.Scan(&e.GalleryId, &e.Title, &start, &end)
+		if err != nil {
+			return nil, err
+		}
+		end = end.AddDate(0, 0, -1)
+		e.DateRange = dateRange{start, end}
+		results = append(results, e)
+	}
+
+	err = rows.Err()
+	return
+}

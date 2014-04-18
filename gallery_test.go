@@ -7,6 +7,7 @@ import (
 	"github.com/satori/go.uuid"
 	"reflect"
 	"strconv"
+	"sync"
 	"testing"
 )
 
@@ -18,6 +19,23 @@ func createRandomGallery() *Gallery {
 	g.About = "AboutMe:" + i
 	g.Meta = []byte(`{"location": "Asahikawa City"}`)
 	return g
+}
+
+func insertRandomGallery(total int) (results []*Gallery, err error) {
+	var wg sync.WaitGroup
+	wg.Add(total)
+
+	for i := 0; i < total; i++ {
+		g := createRandomGallery()
+		results = append(results, g)
+		go func(g *Gallery, err error) {
+			err = g.Create()
+			wg.Done()
+		}(g, err)
+	}
+
+	wg.Wait()
+	return
 }
 
 func AssertSameGallery(id string, g *Gallery) error {
