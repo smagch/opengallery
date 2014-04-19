@@ -79,10 +79,8 @@ func TestCreateGallery(t *testing.T) {
 	}
 	defer db.Close()
 	g := createRandomGallery()
-	var id string
 	if err := g.Create(); err != nil {
 		t.Fatal(err)
 	}
-
-	AssertSameGallery(id, g)
+	AssertSameGallery(g.Id, g)
 }
