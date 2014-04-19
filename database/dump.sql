@@ -11,6 +11,7 @@ SET client_min_messages = warning;
 
 SET search_path = public, pg_catalog;
 
+ALTER TABLE ONLY public.exhibition DROP CONSTRAINT exhibition_gallery_id_fkey;
 DROP INDEX public.exhibition_substring_idx;
 DROP INDEX public.date_range;
 ALTER TABLE ONLY public.gallery DROP CONSTRAINT gallery_pkey;
@@ -109,6 +110,14 @@ CREATE INDEX date_range ON exhibition USING gist (date_range);
 --
 
 CREATE UNIQUE INDEX exhibition_substring_idx ON exhibition USING btree ("substring"(_byteid, 5));
+
+
+--
+-- Name: exhibition_gallery_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY exhibition
+    ADD CONSTRAINT exhibition_gallery_id_fkey FOREIGN KEY (gallery_id) REFERENCES gallery(id);
 
 
 --

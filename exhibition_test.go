@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"fmt"
 	_ "github.com/lib/pq"
-	"github.com/satori/go.uuid"
 	"math/rand"
 	"reflect"
 	"sort"
@@ -79,8 +78,9 @@ func TestExhibitionMarshaling(t *testing.T) {
 }
 
 func createRandomExhibition() *Exhibition {
+	g := mustInsertGallery()
 	m := &Exhibition{}
-	m.GalleryId = uuid.NewV4().String()
+	m.GalleryId = g.Id
 	m.Title = fmt.Sprintf("Exhibition-Title-%d", random(1000, 2000))
 	m.Id = "ID:" + m.Title
 	m.Description = "Description for " + m.Title

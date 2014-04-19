@@ -21,6 +21,14 @@ func createRandomGallery() *Gallery {
 	return g
 }
 
+func mustInsertGallery() *Gallery {
+	g := createRandomGallery()
+	if err := g.Create(); err != nil {
+		panic(err)
+	}
+	return g
+}
+
 func insertRandomGallery(total int) (results []*Gallery, err error) {
 	var wg sync.WaitGroup
 	wg.Add(total)
