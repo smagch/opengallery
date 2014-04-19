@@ -9,6 +9,7 @@ import (
 	"github.com/satori/go.uuid"
 	"math/rand"
 	"reflect"
+	"sort"
 	"sync"
 	"testing"
 	"time"
@@ -37,6 +38,20 @@ func MustTruncateAll() {
 func random(min, max int) int {
 	rand.Seed(time.Now().UnixNano())
 	return rand.Intn(max-min) + min
+}
+
+type ExList []Exhibition
+
+func (e ExList) Len() int {
+	return len(e)
+}
+
+func (e ExList) Less(i, j int) bool {
+	return e[i].DateRange[1].Before(e[j].DateRange[1])
+}
+
+func (e ExList) Swap(i, j int) {
+	e[i], e[j] = e[j], e[i]
 }
 
 func TestExhibitionMarshaling(t *testing.T) {
@@ -241,6 +256,9 @@ func TestGetExhibitionsByDateRange(t *testing.T) {
 		if num != c.num {
 			t.Fatalf("Expected %d results length on %s. But got %d", c.num,
 				c.start, num)
+		}
+		if !sort.IsSorted(ExList(results)) {
+			t.Fatal("Response should be sorted in the final date order")
 		}
 	}
 }
