@@ -168,14 +168,20 @@ func (e *Exhibition) CreateOrUpdate() error {
 }
 
 // GetExhibition fetch an exhibition model.
-func GetExhibition(galleryId, id string) (e *Exhibition, err error) {
+func GetExhibition(galleryId, id string) (*Exhibition, error) {
 	var dateStart, dateEnd time.Time
-	e = &Exhibition{
+	e := &Exhibition{
 		GalleryId: galleryId,
 		Id:        id,
 	}
+	if err := e.Validate(); err != nil {
+		return nil, err
+	}
+	// use lower case uuid for consistency
+	e.GalleryId = strings.ToLower(e.GalleryId)
+
 	b := e.GetHashId()
-	err = db.QueryRow(`
+	err := db.QueryRow(`
 		SELECT
 			title, description, lower(date_range), upper(date_range)
 		FROM
@@ -184,11 +190,14 @@ func GetExhibition(galleryId, id string) (e *Exhibition, err error) {
 			substring(_byteid, 5) = $1
 		`, b).Scan(&e.Title, &e.Description, &dateStart, &dateEnd)
 	if err != nil {
-		return
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+		return nil, err
 	}
 	dateEnd = dateEnd.AddDate(0, 0, -1)
 	e.DateRange = dateRange{dateStart, dateEnd}
-	return
+	return e, nil
 }
 
 func GetExhibitionJSON(galleryId, id string) (b []byte, err error) {

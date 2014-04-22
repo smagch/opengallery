@@ -77,7 +77,7 @@ func TestExhibitionMarshaling(t *testing.T) {
 	}
 }
 
-func createRandomExhibition() *Exhibition {
+func GenerateRandomExhibition() *Exhibition {
 	g := mustInsertGallery()
 	m := &Exhibition{}
 	m.GalleryId = g.Id
@@ -88,6 +88,14 @@ func createRandomExhibition() *Exhibition {
 	dEnd := dStart.AddDate(0, 0, 14)
 	m.DateRange = dateRange{dStart, dEnd}
 	return m
+}
+
+func MustHaveExhibition() *Exhibition {
+	e := GenerateRandomExhibition()
+	if err := e.Create(); err != nil {
+		panic(err)
+	}
+	return e
 }
 
 func AssertSameExhibition(galleryId, id string, e *Exhibition) error {
@@ -182,7 +190,7 @@ func TestExhibitionCreate(t *testing.T) {
 	}
 	defer db.Close()
 
-	e := createRandomExhibition()
+	e := GenerateRandomExhibition()
 	if err := SaveAndAssert(e, e.Create); err != nil {
 		t.Fatal(err)
 	}
@@ -200,7 +208,7 @@ func TestExhibitionCreate(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	e = createRandomExhibition()
+	e = GenerateRandomExhibition()
 	if err := SaveAndAssert(e, e.CreateOrUpdate); err != nil {
 		t.Fatal(err)
 	}
@@ -212,10 +220,7 @@ func TestGetExhibitionJSON(t *testing.T) {
 	}
 	defer db.Close()
 
-	e := createRandomExhibition()
-	if err := e.Create(); err != nil {
-		t.Fatal(err)
-	}
+	e := MustHaveExhibition()
 	b, err := GetExhibitionJSON(e.GalleryId, e.Id)
 	if err != nil {
 		t.Fatal(err)
