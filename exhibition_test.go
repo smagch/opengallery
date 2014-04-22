@@ -206,6 +206,26 @@ func TestExhibitionCreate(t *testing.T) {
 	}
 }
 
+func TestGetExhibitionJSON(t *testing.T) {
+	if err := OpenTestDb(); err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	e := createRandomExhibition()
+	if err := e.Create(); err != nil {
+		t.Fatal(err)
+	}
+	b, err := GetExhibitionJSON(e.GalleryId, e.Id)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b2, err := json.Marshal(e)
+	if !bytes.Equal(b, b2) {
+		t.Fatal("Inconsistent JSON output")
+	}
+}
+
 func TestGetExhibitionsByDateRange(t *testing.T) {
 	if err := OpenTestDb(); err != nil {
 		t.Fatal(err)
