@@ -14,11 +14,11 @@ type Gallery struct {
 }
 
 // Validate returns error if a field value is invalid.
-func (g *Gallery) Validate() error {
+func (g *Gallery) Validate() (err ValidationError) {
 	if !IsUUID(g.Id) {
-		return fmt.Errorf("Invalid Id: %s is not an UUID", g.Id)
+		err = err.Append(fmt.Sprintf("Invalid Id: %s is not an UUID", g.Id))
 	}
-	return nil
+	return
 }
 
 // Create insert a row in gallery table.

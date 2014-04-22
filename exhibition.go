@@ -99,14 +99,14 @@ func (e *Exhibition) GetDateByte() []byte {
 }
 
 // Validate executes validation for exhibition properties.
-func (e *Exhibition) Validate() error {
+func (e *Exhibition) Validate() (err ValidationError) {
 	if len(e.Id) == 0 {
-		return errors.New("Invalid id: " + e.Id)
+		err = err.Append("Invalid id: " + e.Id + " should not empty")
 	}
 	if !IsUUID(e.GalleryId) {
-		return errors.New("Invalid gallery_id: " + e.GalleryId)
+		err = err.Append("Invalid gallery_id: " + e.GalleryId + " should be UUID")
 	}
-	return nil
+	return
 }
 
 // Create insert a row into exhibition table.
@@ -144,27 +144,27 @@ func (e *Exhibition) Update() error {
 }
 
 // CreateOrUpdate update if exists. If not create new model.
-func (e *Exhibition) CreateOrUpdate() (err error) {
-	if err = e.Validate(); err != nil {
-		return
+func (e *Exhibition) CreateOrUpdate() error {
+	if err := e.Validate(); err != nil {
+		return err
 	}
 	var exists bool
 	hashId := e.GetHashId()
-	err = db.QueryRow(`
+	err := db.QueryRow(`
 		SELECT EXISTS (
 			SELECT 1 FROM exhibition WHERE substring(_byteid, 5) = $1
 		)
 	`, hashId).Scan(&exists)
 
 	if err != nil {
-		return
+		return err
 	}
 	if exists {
 		err = e.Update()
 	} else {
 		err = e.Create()
 	}
-	return
+	return err
 }
 
 // GetExhibition fetch an exhibition model.

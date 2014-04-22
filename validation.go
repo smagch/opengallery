@@ -1,5 +1,9 @@
 package main
 
+import (
+	"strings"
+)
+
 func isDigit(r rune) bool {
 	return '0' <= r && r <= '9'
 }
@@ -33,4 +37,17 @@ func IsUUID(s string) bool {
 		count += 1
 	}
 	return true
+}
+
+// ValidationError is a simple error that can contain multiple error messages.
+type ValidationError []string
+
+// Append add an error message.
+func (err ValidationError) Append(msg string) ValidationError {
+	return append(err, msg)
+}
+
+// Error returns a concatenated error message.
+func (err ValidationError) Error() string {
+	return "Validation Error:\n" + strings.Join(err, "\n")
 }
