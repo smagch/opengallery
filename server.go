@@ -4,6 +4,7 @@ import (
 	"github.com/smagch/patree"
 	"io"
 	"net/http"
+	"strconv"
 )
 
 var (
@@ -61,6 +62,7 @@ func (h *ExhibitionHandler) Get(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
 	w.Write(b)
 }
 
