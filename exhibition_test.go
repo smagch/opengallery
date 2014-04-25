@@ -78,7 +78,7 @@ func TestExhibitionMarshaling(t *testing.T) {
 }
 
 func GenerateRandomExhibition() *Exhibition {
-	g := mustInsertGallery()
+	g := MustHaveGallery()
 	m := &Exhibition{}
 	m.GalleryId = g.Id
 	m.Title = fmt.Sprintf("Exhibition-Title-%d", random(1000, 2000))
@@ -127,7 +127,7 @@ func insertExhibitionsWith(dr dateRange, gList []*Gallery) (results []*Exhibitio
 	for _, g := range gList {
 		e := &Exhibition{}
 		e.GalleryId = g.Id
-		e.Title = fmt.Sprintf("Exhibition-Title-%d", random(1000, 2000))
+		e.Title = fmt.Sprintf("Exhibition-Title-%d", random(1, 200000000))
 		e.Id = "ID:" + e.Title
 		e.Description = "Description for " + e.Title
 		e.DateRange = dr

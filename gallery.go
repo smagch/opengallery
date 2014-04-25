@@ -1,6 +1,7 @@
 package main
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 )
@@ -36,9 +37,9 @@ func (g *Gallery) Create() error {
 }
 
 // GetGallery fetch a row from gallry table.
-func GetGallery(id string) (g *Gallery, err error) {
-	g = &Gallery{}
-	err = db.QueryRow(`
+func GetGallery(id string) (*Gallery, error) {
+	g := &Gallery{}
+	err := db.QueryRow(`
 		SELECT
 			id, name, meta, about
 		FROM
@@ -46,5 +47,11 @@ func GetGallery(id string) (g *Gallery, err error) {
 		WHERE
 			id = $1`,
 		id).Scan(&g.Id, &g.Name, &g.Meta, &g.About)
-	return
+	if err == nil {
+		return g, nil
+	}
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+	return nil, err
 }

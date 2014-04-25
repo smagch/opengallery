@@ -9,6 +9,10 @@
 		{
 			"ImportPath": "github.com/satori/go.uuid",
 			"Rev": "46e1db27972f44c7722f23195ba6a8d2c2f3a0a3"
+		},
+		{
+			"ImportPath": "github.com/smagch/patree",
+			"Rev": "991dacefc8aee8be3e0ff79f77668d9428c59415"
 		}
 	]
 }

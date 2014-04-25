@@ -21,7 +21,7 @@ func createRandomGallery() *Gallery {
 	return g
 }
 
-func mustInsertGallery() *Gallery {
+func MustHaveGallery() *Gallery {
 	g := createRandomGallery()
 	if err := g.Create(); err != nil {
 		panic(err)
