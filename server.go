@@ -24,6 +24,12 @@ func (err *NotFoundError) Error() string {
 	return "URL " + err.url + "NotFound"
 }
 
+type ListResponse struct {
+	Results interface{} `json:"results,omitempty"`
+	Errors  interface{} `json:"errors,omitempty"`
+	Code    int         `json:"code,omitempty"`
+}
+
 // HandleError
 func HandleError(w http.ResponseWriter, r *http.Request, err error) {
 	if v, ok := err.(*ValidationError); ok {
@@ -71,53 +77,17 @@ func Json(w http.ResponseWriter, model interface{}) {
 	w.Write(b)
 }
 
-// ExhibitionHandler handles exhibition resources.
-type ExhibitionHandler struct {
-	IdName        string
-	GalleryIdName string
-}
-
-// Get send a JSON response that represents an exhibition.
-func (h *ExhibitionHandler) Get(w http.ResponseWriter, r *http.Request) error {
-	id, galleryId := patree.Param(r, h.IdName), patree.Param(r, h.GalleryIdName)
-	// TODO it's not quite suitable to respond bad request with validation error
-	e, err := GetExhibition(galleryId, id)
-	if err != nil {
-		return err
-	} else if e == nil {
-		return New404(r.URL.Path)
-	}
-	Json(w, e)
-	return nil
-}
-
-// Gallery
-type GalleryHandler struct {
-	IdName string
-}
-
-func (h *GalleryHandler) Get(w http.ResponseWriter, r *http.Request) error {
-	id := patree.Param(r, h.IdName)
-	g, err := GetGallery(id)
-	if err != nil {
-		return err
-	} else if g == nil {
-		return New404(r.URL.Path)
-	}
-	Json(w, g)
-	return nil
-}
-
 // App returns main http multiplexer.
 func App() *patree.PatternTreeServeMux {
 	mux := patree.New()
 	mux.UseFunc(Boot)
 	mux.Error(HandleError)
 
-	exHandler := &ExhibitionHandler{"exhibition_id", "gallery_id"}
+	exHandler := &ExhibitionHandler{"exhibition_id", "gallery_id", "date"}
 	mux.Get("/galleries/<uuid:gallery_id>/exhibitions/<exhibition_id>",
 		exHandler.Get)
-	// TODO mux.Get("/exhibitions/<date:date>")
+	mux.Get("/exhibitions/<date:date>", exHandler.FindByDate)
+
 	gHandler := &GalleryHandler{"gallery_id"}
 	mux.Get("/galleries/<uuid:gallery_id>", gHandler.Get)
 	return mux

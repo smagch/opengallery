@@ -228,6 +228,7 @@ func SearchExhibitions(dr *dateRange) (results []Exhibition, err error) {
 	}
 	defer rows.Close()
 
+	results = []Exhibition{}
 	for rows.Next() {
 		var start, end time.Time
 		e := Exhibition{}

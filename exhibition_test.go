@@ -121,11 +121,11 @@ func SaveAndAssert(e *Exhibition, fn func() error) error {
 	return nil
 }
 
-func insertExhibitionsWith(dr dateRange, gList []*Gallery) (results []*Exhibition, err error) {
+func insertExhibitionsWith(dr dateRange, gList []*Gallery) (results []Exhibition, err error) {
 	var wg sync.WaitGroup
 	wg.Add(len(gList))
 	for _, g := range gList {
-		e := &Exhibition{}
+		e := Exhibition{}
 		e.GalleryId = g.Id
 		e.Title = fmt.Sprintf("Exhibition-Title-%d", random(1, 200000000))
 		e.Id = "ID:" + e.Title
@@ -135,7 +135,7 @@ func insertExhibitionsWith(dr dateRange, gList []*Gallery) (results []*Exhibitio
 		go func(e *Exhibition) {
 			err = e.Create()
 			wg.Done()
-		}(e)
+		}(&e)
 	}
 	wg.Wait()
 	return
