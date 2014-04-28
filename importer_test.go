@@ -108,6 +108,7 @@ func TestImportFixture(t *testing.T) {
 	if err := OpenTestDb(); err != nil {
 		t.Fatal(err)
 	}
+	defer db.Close()
 	MustTruncateAll()
 	pwd, err := os.Getwd()
 	if err != nil {
