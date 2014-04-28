@@ -161,7 +161,6 @@ func insertExhibitions(start time.Time, span int, total int) (eList []*Exhibitio
 	var dateStart, dateEnd time.Time
 	current := start
 
-	fmt.Println(g.Id)
 	for i := 0; i < total; i++ {
 		wg.Add(1)
 		e := &Exhibition{
@@ -211,6 +210,41 @@ func TestExhibitionCreate(t *testing.T) {
 	e = GenerateRandomExhibition()
 	if err := SaveAndAssert(e, e.CreateOrUpdate); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestListExhibitionByGallery(t *testing.T) {
+	if err := OpenTestDb(); err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	MustTruncateAll()
+	date := time.Date(2009, time.November, 10, 0, 0, 0, 0, time.UTC)
+	eList, err := insertExhibitions(date, 7, 30)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err = insertExhibitions(date, 7, 10); err != nil {
+		t.Fatal(err)
+	}
+
+	var exhibitions []Exhibition
+	if exhibitions, err = ListExhibitionByGallery(eList[0].GalleryId); err != nil {
+		t.Fatal(err)
+	}
+
+	if len(exhibitions) != 30 {
+		t.Fatal("It should return 30 exhibitions")
+	}
+
+	for i, e := range exhibitions {
+		expected := *eList[i]
+		expected.Description = ""
+		e.DateRange[0] = e.DateRange[0].In(time.UTC)
+		e.DateRange[1] = e.DateRange[1].In(time.UTC)
+		if !reflect.DeepEqual(e, expected) {
+			t.Fatalf("Expected\n%#v\n. But got\n%#v", expected, e)
+		}
 	}
 }
 

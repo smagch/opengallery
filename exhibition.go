@@ -208,11 +208,49 @@ func GetExhibition(galleryId, id string) (*Exhibition, error) {
 	return e, nil
 }
 
-func SearchExhibitions(dr *dateRange) (results []Exhibition, err error) {
-	var rows *sql.Rows
-	rows, err = db.Query(`
+func handleRows(rows *sql.Rows) ([]Exhibition, error) {
+	defer rows.Close()
+	results := []Exhibition{}
+	for rows.Next() {
+		var start, end time.Time
+		e := Exhibition{}
+		if err := rows.Scan(&e.Id, &e.GalleryId, &e.Title, &start, &end); err != nil {
+			return nil, err
+		}
+		end = end.AddDate(0, 0, -1)
+		e.DateRange = dateRange{start, end}
+		results = append(results, e)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return results, nil
+}
+
+func ListExhibitionByGallery(galleryId string) ([]Exhibition, error) {
+	rows, err := db.Query(`
 		SELECT
-			gallery_id, title, lower(date_range), upper(date_range)
+			id, gallery_id, title, lower(date_range), upper(date_range)
+		FROM
+			exhibition
+		WHERE
+			gallery_id = $1
+		ORDER BY
+			gallery_id, lower(date_range)
+		LIMIT
+			100
+	`, galleryId)
+
+	if err != nil {
+		return nil, err
+	}
+	return handleRows(rows)
+}
+
+func SearchExhibitions(dr *dateRange) ([]Exhibition, error) {
+	rows, err := db.Query(`
+		SELECT
+			id, gallery_id, title, lower(date_range), upper(date_range)
 		FROM
 			exhibition
 		WHERE
@@ -223,23 +261,8 @@ func SearchExhibitions(dr *dateRange) (results []Exhibition, err error) {
 	`, dr.Format())
 
 	if err != nil {
-		return
-	}
-	defer rows.Close()
-
-	results = []Exhibition{}
-	for rows.Next() {
-		var start, end time.Time
-		e := Exhibition{}
-		err = rows.Scan(&e.GalleryId, &e.Title, &start, &end)
-		if err != nil {
-			return nil, err
-		}
-		end = end.AddDate(0, 0, -1)
-		e.DateRange = dateRange{start, end}
-		results = append(results, e)
+		return nil, err
 	}
 
-	err = rows.Err()
-	return
+	return handleRows(rows)
 }
