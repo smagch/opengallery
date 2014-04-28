@@ -13,6 +13,7 @@ SET search_path = public, pg_catalog;
 
 ALTER TABLE ONLY public.exhibition DROP CONSTRAINT exhibition_gallery_id_fkey;
 DROP INDEX public.exhibition_substring_idx;
+DROP INDEX public.exhibition_gallery;
 DROP INDEX public.date_range;
 ALTER TABLE ONLY public.gallery DROP CONSTRAINT gallery_pkey;
 ALTER TABLE ONLY public.exhibition DROP CONSTRAINT exhibition_pkey;
@@ -103,6 +104,13 @@ ALTER TABLE ONLY gallery
 --
 
 CREATE INDEX date_range ON exhibition USING gist (date_range);
+
+
+--
+-- Name: exhibition_gallery; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX exhibition_gallery ON exhibition USING btree (gallery_id, lower(date_range));
 
 
 --
