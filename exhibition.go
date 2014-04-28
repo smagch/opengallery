@@ -14,7 +14,8 @@ import (
 )
 
 const (
-	DATE_LAYOUT = "2006-01-02"
+	DATE_LAYOUT       = "2006-01-02"
+	DATE_LAYOUT_SLASH = "2006/01/02"
 )
 
 var (
@@ -54,12 +55,20 @@ func (dr *dateRange) Format() string {
 		dr[1].Format(DATE_LAYOUT))
 }
 
-func parseDateRange(start, end string) (dr *dateRange, err error) {
+func parseDateRange(start, end string) (*dateRange, error) {
+	return parseDateRangeByLayout(start, end, DATE_LAYOUT)
+}
+
+func ParseDateRangeBySlash(start, end string) (dr *dateRange, err error) {
+	return parseDateRangeByLayout(start, end, DATE_LAYOUT_SLASH)
+}
+
+func parseDateRangeByLayout(start, end, layout string) (dr *dateRange, err error) {
 	var dStart, dEnd time.Time
-	if dStart, err = time.Parse(DATE_LAYOUT, start); err != nil {
+	if dStart, err = time.Parse(layout, start); err != nil {
 		return nil, errors.New("DateRange Parse Error: Invalid Date Start " + start)
 	}
-	if dEnd, err = time.Parse(DATE_LAYOUT, end); err != nil {
+	if dEnd, err = time.Parse(layout, end); err != nil {
 		return nil, errors.New("DateRange Parse Error: Invalid Date End " + end)
 	}
 	return &dateRange{dStart, dEnd}, nil

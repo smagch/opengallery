@@ -1,8 +1,14 @@
 package main
 
 import (
+	"encoding/csv"
 	"encoding/json"
+	"errors"
+	"io"
+	"strings"
 )
+
+var NoContentError = errors.New("No Content")
 
 type galleryInput struct {
 	Id          string   `json:"id"`
@@ -42,53 +48,83 @@ func ParseGalleryData(b []byte) (g *Gallery, exhibitions []string, err error) {
 	return
 }
 
-// func ImportExhibition(reader io.Reader) (err error) {
-// 	// file, err := os.Open(filename)
-// 	// if err != nil {
-// 	// 	return err
-// 	// }
-// 	// defer file.Close()
-// 	// r := csv.NewReader(file)
-// 	//var record []string
-// 	var props
-// 	r := csv.NewReader(reader)
-// 	if props, err = r.Read(); err != nil {
-// 		return
-// 	}
+func ImportExhibition(galleryId string, reader io.Reader) (exhibitions []Exhibition, err error) {
+	var props []string
+	r := csv.NewReader(reader)
+	if props, err = r.Read(); err != nil {
+		if err == io.EOF {
+			err = NoContentError
+			return
+		}
+		return
+	}
 
-// 	for {
-// 		var record []string
-// 		if record, err = r.Read(); err != nil && err != io.EOF {
-// 			return
-// 		}
-// 		if record == nil {
-// 			break
-// 		}
-// 		m := make(map[string]interface{})
-// 		for i, prop := range props {
-// 			if prop == "date_range" {
-// 				date_range := strings.Split(record[i], ",")
-// 				m[prop] = []string{
-// 					strings.TrimSpace(date_range[0]),
-// 					strings.TrimSpace(date_range[1]),
-// 				}
-// 			} else {
-// 				m[prop] = record[i]
-// 			}
-// 		}
+	propsRequired := []string{"id", "title", "description", "start", "end"}
+	propsOptional := []string{"alerts", "notes"}
+	propsAllowed := append(propsRequired, propsOptional...)
+	usedProps := make(map[int]bool)
 
-// 		var b []byte
-// 		if b, err = json.Marshal(m); err != nil {
-// 			return
-// 		}
-// 		e := &Exhibition{}
-// 		if err = json.Unmarshal(b, &e); err != nil {
-// 			return
-// 		}
-// 		if err = e.Create(); err != nil {
-// 			return
-// 		}
-// 	}
+	for _, p := range propsAllowed {
+		for i, verboseProp := range props {
+			if strings.HasSuffix(verboseProp, p) {
+				props[i] = p
+				usedProps[i] = true
+				continue
+			}
+		}
+		// if p != "alerts" && p != "notes" {
+		// 	return nil, fmt.Errorf("property \"%s\" is required.", p)
+		// }
+	}
 
-// 	fmt.Println("ok")
-// }
+	exhibitions = []Exhibition{}
+	for {
+		var record []string
+		if record, err = r.Read(); err != nil {
+			if err == io.EOF {
+				if len(exhibitions) == 0 {
+					err = NoContentError
+				} else {
+					err = nil
+				}
+			}
+			return
+		}
+
+		if record == nil {
+			break
+		}
+		m := make(map[string]interface{})
+		var dateStart, dateEnd string
+		for i, prop := range props {
+			if _, ok := usedProps[i]; !ok {
+				continue
+			}
+			if prop == "start" {
+				dateStart = record[i]
+			} else if prop == "end" {
+				dateEnd = record[i]
+			} else if prop != "alerts" && prop != "notes" {
+				// TODO alerts and notes
+				m[prop] = record[i]
+			}
+		}
+		m["date_range"], err = ParseDateRangeBySlash(dateStart, dateEnd)
+		if err != nil {
+			return
+		}
+
+		var b []byte
+		if b, err = json.Marshal(m); err != nil {
+			return
+		}
+		e := Exhibition{}
+		if err = json.Unmarshal(b, &e); err != nil {
+			return
+		}
+		e.GalleryId = galleryId
+		exhibitions = append(exhibitions, e)
+	}
+
+	return
+}
