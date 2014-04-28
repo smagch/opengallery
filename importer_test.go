@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"os"
+	"path"
 	"reflect"
 	"testing"
 )
@@ -84,7 +86,6 @@ func TestImportExhibition(t *testing.T) {
 	for i, e := range expected {
 		if !reflect.DeepEqual(e, exhibitions[i]) {
 			t.Fatalf("Expected %v\n. But got %v instead", e, exhibitions[i])
-
 		}
 	}
 }
@@ -100,5 +101,21 @@ func TestImportExhibitionNoContent(t *testing.T) {
 	)
 	if _, err := ImportExhibition(galleryId, reader); err != NoContentError {
 		t.Fatal("It should return NoContentError")
+	}
+}
+
+func TestImportFixture(t *testing.T) {
+	if err := OpenTestDb(); err != nil {
+		t.Fatal(err)
+	}
+	MustTruncateAll()
+	pwd, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+	filename := path.Join(pwd, "fixtures/hirama/hirama.json")
+	err = ImportFixture(filename)
+	if err != nil {
+		t.Fatal(err)
 	}
 }
