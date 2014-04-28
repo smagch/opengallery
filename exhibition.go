@@ -4,7 +4,6 @@ import (
 	"crypto/sha256"
 	"database/sql"
 	"encoding/binary"
-	"encoding/json"
 	"errors"
 	"fmt"
 	_ "github.com/lib/pq"
@@ -207,15 +206,6 @@ func GetExhibition(galleryId, id string) (*Exhibition, error) {
 	dateEnd = dateEnd.AddDate(0, 0, -1)
 	e.DateRange = dateRange{dateStart, dateEnd}
 	return e, nil
-}
-
-func GetExhibitionJSON(galleryId, id string) (b []byte, err error) {
-	var e *Exhibition
-	if e, err = GetExhibition(galleryId, id); err != nil || e == nil {
-		return
-	}
-	b, err = json.Marshal(*e)
-	return
 }
 
 func SearchExhibitions(dr *dateRange) (results []Exhibition, err error) {
