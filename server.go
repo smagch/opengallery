@@ -87,6 +87,7 @@ func App() *patree.PatternTreeServeMux {
 	exHandler := &ExhibitionHandler{"exhibition_id", "gallery_id", "date"}
 	mux.Get("/galleries/<uuid:gallery_id>/exhibitions/<exhibition_id>",
 		exHandler.Get)
+	mux.Get("/galleries/<uuid:gallery_id>/exhibitions", exHandler.ListByGallery)
 	mux.Get("/exhibitions/<date:date>", exHandler.FindByDate)
 
 	gHandler := &GalleryHandler{"gallery_id"}

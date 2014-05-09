@@ -43,3 +43,14 @@ func (h *ExhibitionHandler) FindByDate(w http.ResponseWriter, r *http.Request) e
 	Json(w, res)
 	return nil
 }
+
+func (h *ExhibitionHandler) ListByGallery(w http.ResponseWriter, r *http.Request) error {
+	galleryId := patree.Param(r, h.GalleryIdName)
+	results, err := ListExhibitionByGallery(galleryId)
+	if err != nil {
+		return err
+	}
+	res := &ListResponse{Results: results}
+	Json(w, res)
+	return nil
+}
