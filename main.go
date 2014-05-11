@@ -10,6 +10,7 @@ import (
 func main() {
 	httpAddr := flag.String("http", ":8080", "http address to listen")
 	postgresUrl := flag.String("postgres-url", "", "postgres url to listen")
+	importPath := flag.String("import", "", "import path")
 	flag.Parse()
 
 	if *postgresUrl == "" {
@@ -22,6 +23,11 @@ func main() {
 		log.Fatal(err)
 	}
 	db.SetMaxOpenConns(4)
+
+	if *importPath != "" {
+		ImportFixture(*importPath)
+		return
+	}
 
 	mux := App()
 	http.Handle("/", mux)
