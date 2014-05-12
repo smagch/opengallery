@@ -73,13 +73,17 @@ func parseDateRangeByLayout(start, end, layout string) (dr *dateRange, err error
 	return &dateRange{dStart, dEnd}, nil
 }
 
-//
 type Exhibition struct {
 	Id          string    `json:"id"`
-	GalleryId   string    `json:"gallery_id"`
+	GalleryId   string    `json:"gallery_id,omitempty"`
 	Title       string    `json:"title"`
 	Description string    `json:"description"`
 	DateRange   dateRange `json:"date_range"`
+}
+
+type VExhibition struct {
+	Exhibition
+	Gallery Gallery `json:"gallery"`
 }
 
 func (e *Exhibition) GetByteId() []byte {
@@ -208,13 +212,13 @@ func GetExhibition(galleryId, id string) (*Exhibition, error) {
 	return e, nil
 }
 
-func handleRows(rows *sql.Rows) ([]Exhibition, error) {
+func handleRows(rows *sql.Rows) ([]*VExhibition, error) {
 	defer rows.Close()
-	results := []Exhibition{}
+	results := []*VExhibition{}
 	for rows.Next() {
 		var start, end time.Time
-		e := Exhibition{}
-		if err := rows.Scan(&e.Id, &e.GalleryId, &e.Title, &start, &end); err != nil {
+		e := &VExhibition{Gallery: Gallery{}}
+		if err := rows.Scan(&e.Id, &e.Title, &start, &end, &e.Gallery.Id, &e.Gallery.Name); err != nil {
 			return nil, err
 		}
 		end = end.AddDate(0, 0, -1)
@@ -227,12 +231,16 @@ func handleRows(rows *sql.Rows) ([]Exhibition, error) {
 	return results, nil
 }
 
-func ListExhibitionByGallery(galleryId string) ([]Exhibition, error) {
+func ListExhibitionByGallery(galleryId string) ([]*VExhibition, error) {
 	rows, err := db.Query(`
 		SELECT
-			id, gallery_id, title, lower(date_range), upper(date_range)
+			e.id, e.title, lower(e.date_range), upper(e.date_range), g.id, g.name
 		FROM
-			exhibition
+			exhibition AS e
+		JOIN
+			gallery AS g
+		ON
+			e.gallery_id = g.id
 		WHERE
 			gallery_id = $1
 		ORDER BY
@@ -247,12 +255,16 @@ func ListExhibitionByGallery(galleryId string) ([]Exhibition, error) {
 	return handleRows(rows)
 }
 
-func SearchExhibitions(dr *dateRange) ([]Exhibition, error) {
+func SearchExhibitions(dr *dateRange) ([]*VExhibition, error) {
 	rows, err := db.Query(`
 		SELECT
-			id, gallery_id, title, lower(date_range), upper(date_range)
+			e.id, e.title, lower(e.date_range), upper(e.date_range), g.id, g.name
 		FROM
-			exhibition
+			exhibition AS e
+		JOIN
+			gallery AS g
+		ON
+			e.gallery_id = g.id
 		WHERE
 			date_range && $1
 		ORDER BY

@@ -34,7 +34,7 @@ func (h *ExhibitionHandler) FindByDate(w http.ResponseWriter, r *http.Request) e
 		return err
 	}
 	dr := &dateRange{d, d}
-	var results []Exhibition
+	var results []*VExhibition
 	results, err = SearchExhibitions(dr)
 	if err != nil {
 		return err

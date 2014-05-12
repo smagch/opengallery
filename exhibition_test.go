@@ -39,7 +39,7 @@ func random(min, max int) int {
 	return rand.Intn(max-min) + min
 }
 
-type ExList []Exhibition
+type ExList []*VExhibition
 
 func (e ExList) Len() int {
 	return len(e)
@@ -228,7 +228,7 @@ func TestListExhibitionByGallery(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var exhibitions []Exhibition
+	var exhibitions []*VExhibition
 	if exhibitions, err = ListExhibitionByGallery(eList[0].GalleryId); err != nil {
 		t.Fatal(err)
 	}
@@ -238,12 +238,11 @@ func TestListExhibitionByGallery(t *testing.T) {
 	}
 
 	for i, e := range exhibitions {
-		expected := *eList[i]
-		expected.Description = ""
-		e.DateRange[0] = e.DateRange[0].In(time.UTC)
-		e.DateRange[1] = e.DateRange[1].In(time.UTC)
-		if !reflect.DeepEqual(e, expected) {
-			t.Fatalf("Expected\n%#v\n. But got\n%#v", expected, e)
+		ex := *eList[i]
+		if ex.Title != e.Title || e.Gallery.Id != ex.GalleryId ||
+			!ex.DateRange[0].Equal(e.DateRange[0]) ||
+			!ex.DateRange[1].Equal(e.DateRange[1]) {
+			t.Fatalf("Expected\n%#v\n. But got\n%#v", ex, e)
 		}
 	}
 }

@@ -10,8 +10,8 @@ import (
 type Gallery struct {
 	Id    string          `json:"id"`
 	Name  string          `json:"name"`
-	Meta  json.RawMessage `json:"meta"`
-	About string          `json:"about"`
+	Meta  json.RawMessage `json:"meta,omitempty"`
+	About string          `json:"about,omitempty"`
 }
 
 // Validate returns error if a field value is invalid.
