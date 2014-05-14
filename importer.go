@@ -195,7 +195,7 @@ func ImportFixture(filename string) error {
 		}
 	}
 
-	if err = g.Create(); err != nil {
+	if err = g.Sync(); err != nil {
 		return err
 	}
 
@@ -209,7 +209,7 @@ func ImportFixture(filename string) error {
 			return err
 		}
 		for _, e := range exList {
-			if err := e.Create(); err != nil {
+			if err := e.Sync(); err != nil {
 				return err
 			}
 		}
