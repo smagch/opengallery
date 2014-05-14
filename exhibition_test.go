@@ -203,12 +203,12 @@ func TestExhibitionCreate(t *testing.T) {
 	}
 
 	e.Description = "Updated Description"
-	if err := SaveAndAssert(e, e.CreateOrUpdate); err != nil {
+	if err := SaveAndAssert(e, e.Sync); err != nil {
 		t.Fatal(err)
 	}
 
 	e = GenerateRandomExhibition()
-	if err := SaveAndAssert(e, e.CreateOrUpdate); err != nil {
+	if err := SaveAndAssert(e, e.Sync); err != nil {
 		t.Fatal(err)
 	}
 }

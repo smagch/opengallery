@@ -155,8 +155,8 @@ func (e *Exhibition) Update() error {
 	return err
 }
 
-// CreateOrUpdate update if exists. If not create new model.
-func (e *Exhibition) CreateOrUpdate() error {
+// Sync update if exists. If not create new model.
+func (e *Exhibition) Sync() error {
 	if err := e.Validate(); err != nil {
 		return err
 	}
