@@ -91,4 +91,12 @@ func TestCreateGallery(t *testing.T) {
 		t.Fatal(err)
 	}
 	AssertSameGallery(g.Id, g)
+
+	g.Name = "Updated Gallery Name:" + g.Id
+	g.About = "Updated About:" + g.Id
+	g.Meta = []byte(`{"location":"updated"}`)
+	if err := g.Update(); err != nil {
+		t.Fatal(err)
+	}
+	AssertSameGallery(g.Id, g)
 }

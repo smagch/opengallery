@@ -32,7 +32,22 @@ func (g *Gallery) Create() error {
 			gallery (id, name, meta, about)
 		VALUES
 			($1, $2, $3, $4)`,
-		g.Id, g.Name, string(g.Meta), g.About)
+		g.Id, g.Name, []byte(g.Meta), g.About)
+	return err
+}
+
+func (g *Gallery) Update() error {
+	if err := g.Validate(); err != nil {
+		return err
+	}
+	_, err := db.Exec(`
+		UPDATE
+			gallery
+		SET
+			(name, meta, about) = ($2, $3, $4)
+		WHERE
+			id = $1
+	`, g.Id, g.Name, []byte(g.Meta), g.About)
 	return err
 }
 
