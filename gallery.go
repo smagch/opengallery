@@ -51,6 +51,28 @@ func (g *Gallery) Update() error {
 	return err
 }
 
+func (g *Gallery) Sync() error {
+	if err := g.Validate(); err != nil {
+		return err
+	}
+	var exists bool
+	err := db.QueryRow(`
+		SELECT EXISTS (
+			SELECT 1 FROM gallery WHERE id = $1
+		)
+	`, g.Id).Scan(&exists)
+
+	if err != nil {
+		return err
+	}
+	if exists {
+		err = g.Update()
+	} else {
+		err = g.Create()
+	}
+	return err
+}
+
 // GetGallery fetch a row from gallry table.
 func GetGallery(id string) (*Gallery, error) {
 	g := &Gallery{}

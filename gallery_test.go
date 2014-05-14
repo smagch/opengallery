@@ -100,3 +100,23 @@ func TestCreateGallery(t *testing.T) {
 	}
 	AssertSameGallery(g.Id, g)
 }
+
+func TestSyncGallery(t *testing.T) {
+	if err := OpenTestDb(); err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	g := createRandomGallery()
+	if err := g.Sync(); err != nil {
+		t.Fatal(err)
+	}
+	AssertSameGallery(g.Id, g)
+
+	g.Name = "Updated Gallery Name:" + g.Id
+	g.About = "Updated About:" + g.Id
+	g.Meta = []byte(`{"location":"updated"}`)
+	if err := g.Sync(); err != nil {
+		t.Fatal(err)
+	}
+	AssertSameGallery(g.Id, g)
+}
