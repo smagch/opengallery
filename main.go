@@ -13,6 +13,7 @@ func main() {
 	httpAddr := flag.String("http", ":8080", "http address to listen")
 	postgresUrl := flag.String("postgres-url", "", "postgres url to listen")
 	useImport := flag.Bool("import", false, "use data import instead of server")
+	maxConn := flag.Int("max-conn", 20, "the number of postgres max connection")
 	flag.Parse()
 
 	if *postgresUrl == "" {
@@ -32,8 +33,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// TODO max conn
-	db.SetMaxOpenConns(4)
+	db.SetMaxOpenConns(*maxConn)
 
 	if *useImport {
 		for _, filepath := range flag.Args() {
