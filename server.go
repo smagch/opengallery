@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"github.com/smagch/patree"
 	"io"
+	"log"
 	"net/http"
 	"strconv"
 )
@@ -37,12 +38,12 @@ func HandleError(w http.ResponseWriter, r *http.Request, err error) {
 	} else if _, ok := err.(*NotFoundError); ok {
 		NotFound(w)
 	} else {
-		InternalServerError(w, err)
+		InternalServerError(w)
+		log.Println("Internal Server Error: " + err.Error())
 	}
 }
 
 // BadRequest
-// TODO respond JSON instead
 func BadRequest(w http.ResponseWriter, err *ValidationError) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusBadRequest)
@@ -50,11 +51,9 @@ func BadRequest(w http.ResponseWriter, err *ValidationError) {
 }
 
 // InternalServerError
-// TODO logging
-func InternalServerError(w http.ResponseWriter, err error) {
+func InternalServerError(w http.ResponseWriter) {
 	w.Header().Set("Content-Type", "text/plain; charset=utf-8")
 	w.WriteHeader(http.StatusInternalServerError)
-	io.WriteString(w, err.Error())
 }
 
 // NotFound sends 404 notfound status.
@@ -71,7 +70,8 @@ func Boot(w http.ResponseWriter, r *http.Request) error {
 func Json(w http.ResponseWriter, model interface{}) {
 	b, err := json.Marshal(model)
 	if err != nil {
-		InternalServerError(w, err)
+		log.Println("JSON Marshaling Error: " + err.Error())
+		InternalServerError(w)
 		return
 	}
 	w.Header().Set("Content-Length", strconv.Itoa(len(b)))
