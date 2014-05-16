@@ -1,6 +1,6 @@
 {
-	"ImportPath": "open-gallery-info",
-	"GoVersion": "go1.2.1",
+	"ImportPath": "opengallery",
+	"GoVersion": "go1.2.2",
 	"Deps": [
 		{
 			"ImportPath": "github.com/lib/pq",
