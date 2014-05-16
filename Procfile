@@ -1,0 +1,1 @@
+web: opengallery -postgres-url=$DATABASE_URL -http=":$PORT"
