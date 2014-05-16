@@ -4,7 +4,7 @@
 	"Deps": [
 		{
 			"ImportPath": "github.com/lib/pq",
-			"Rev": "f08bb026e0d6b644cad24d850d13352cc47400c5"
+			"Rev": "c808a1bb644594ca717ac61f71e6b0e454b835e2"
 		},
 		{
 			"ImportPath": "github.com/satori/go.uuid",
